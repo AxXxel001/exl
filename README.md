@@ -10,7 +10,7 @@ Example
 -------
 
 ## Template code
-```
+```html
 <p>Email Nr. <input id='mail{{exl-full-id}} name='emails[]' type='email' /></p>
 ```
 
@@ -29,4 +29,4 @@ Example
 ```
 
 ## Result
-![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Logo Title Text 1")
+![alt text](icon48.png "Logo Title Text 1")
