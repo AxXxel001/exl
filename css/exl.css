@@ -1,0 +1,40 @@
+.exl {
+    display: block;
+}
+
+.exl.container {
+}
+
+.exl.wrapper {
+    padding: 5px;
+}
+
+.exl.list {
+    padding-left:0;
+}
+
+.exl.listitem {
+    margin: 5px 0px;
+    padding: 5px;
+}
+
+.exl.listitem:after {
+    content: ".";
+    clear: both;
+    display: block;
+    visibility: hidden;
+    height: 0px;
+}
+
+.exl.content {
+    width: 90%;
+    padding: 5px;
+    float: left;
+}
+
+.exl.button.delete {
+    float: left;
+}
+
+.exl.button.add {
+}
