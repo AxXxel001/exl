@@ -1,0 +1,1 @@
+- external context is only available for templates when first rendering. When adding a template no content data can be provided, BUT things linke ext-id, ext-number-of-items, etc. can be provided. Store the external context in a new hidden input!
