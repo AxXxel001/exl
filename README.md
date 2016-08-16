@@ -29,4 +29,4 @@ Example
 ```
 
 ## Result
-![alt text](icon48.png "Logo Title Text 1")
+![html result emails](sample_email.jpg "Sample result - emails")
