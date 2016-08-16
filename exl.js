@@ -8,74 +8,6 @@
  *
  */
 
-/*
-- Question to solve: sould javascript expandable list care about existing data?
->>	YES: We need mustache.js (two versions of mustache)
-		In this case, we need to "inject" the data into the generated code (see example)
-	NO: We have the expandable list syntax on two different places in out project
-		In this case, javascript would load the data via AJAX (time problems?)... 
-- ObjectOriented Approach to all functions below
-- Add Comments!!!
-- Rename everything to expandable LIST (expandable content is something different)
-- Create custom elements like <expandablelist>...</expandablelist>
-	JS: var expandablelist = document.registerElement('exl-container');
-	>> Custom attributes MUST contain a dash
-	>> registerElement returns a constructor for this element
-	>> My Suggestion: 'exl' for expandablelist, so for every attribute we have 'exl-NAME'
-- When having custom element, the expandable-list.js should be included at the beginning of any HTML/PHP code (so that the custom elements are already registered
-- Better CSS please! Round buttons, animations, ...
-
-Structure for YES case:
-
-	html/php file (server-side):
-	...
-	<script src='.../expandable-list.js'></script>
-	...
-	<exl-container name='AddressContainer' template='exl-templates/address' dataSource='address' size='small'/>
-	<exl-container name='MailContainer' template='exl-templates/mail' dataSource='mail' size='small'/>
-	<exl-container name='PhoneContainer' template='exl-templates/phone' dataSource='phone' size='normal'/>
-	...
-	<script>
-	var data = <?php echo $data ?>;
-	setupExlContainer('AddressContainer', data['Address']);
-	setupExlContainer('MailContainer', data['Mail']);
-	setupExlContainer('PhoneContainer', data['Phone']);
-	</script>
-	...
-
-Could be a nice approach. Talk about this!
-
----------------------------------------------------------------------------------------------------------------
-
-$options =  array('extension' => '.html');
-$root = $root = get_template_directory();
-$m = new Mustache_Engine(array(
-    'loader' => new Mustache_Loader_FilesystemLoader($root . '/views', $options),
-));
-echo $m->render('test', array('name' => 'Peter'));
-
-
-
-$.get('template.mst', function(template) {
-	var rendered = Mustache.render(template, {name: "Luke"});
-	$('#target').html(rendered);
-});
-
-var view = {
-  title: "Joe",
-  calc: function () {
-    return 2 + 4;
-  }
-};
-
-var output = Mustache.render("{{title}} spends {{calc}}", view);
-console.log(output);
-document.getElementById('text').innerHTML = output;
-
----------------------------------------------------------------------------------------------------------------
-
-*/
-
 
 function ExlClass() {
 
@@ -87,6 +19,7 @@ function ExlClass() {
 	}
 	this.setupDefaultConfiguration();
 	registerCustomHTMLTags();
+
 
 	/**
 	 * registerCustomHTMLTags
@@ -118,10 +51,9 @@ function ExlClass() {
 		var pathWithoutFile = pathToThisFile.match(/(.*)[\/\\]/)[1]||'';
 		exlConfig = {
 			'root_path': pathWithoutFile+'/',
-			'template_path': pathWithoutFile+'/'+'exlTemplates/'
+			'template_path': pathWithoutFile+'/'+'template/',
+			'jquery_available': true
 		};
-		console.log('ROOT PATH: '+exlConfig['root_path']);
-		console.log('TMPL PATH: '+exlConfig['template_path']);
 		return exlConfig;
 
 	}
@@ -134,15 +66,29 @@ function ExlClass() {
 	 * 
 	*/
 	function loadFileByUrl(fileUrl) {
-		var loadedFile = null;
-		jQuery.ajax({
-	        url: fileUrl,
-	        success: function(result) {
-				loadedFile = result;
-			},
-	        async: false
-	    });
-	    return loadedFile;
+		if (Exl.config['jquery_available']) {
+			var loadedFile = null;
+			jQuery.ajax({
+		        url: fileUrl,
+		        success: function(result) {
+					loadedFile = result;
+				},
+		        async: false
+		    });
+		    return loadedFile;
+		}
+		else {
+			// NOTE: Doesn't work right now!
+			xhttp = new XMLHttpRequest();
+			xhttp.onreadystatechange = function() {
+				if (xhttp.readyState == 4 && xhttp.status == 200) {
+					result = xhttp.responseText;
+				}
+			};
+			xhttp.open("GET", fileUrl, false);
+			xhttp.send();
+			return result;
+		}
 	}
 
 	/**
@@ -170,7 +116,7 @@ function ExlClass() {
 	 */
 	function getWrapperTemplate() {
 
-		var templateUrl = Exl.config['root_path']+'__exl-template.html';
+		var templateUrl = Exl.config['root_path']+'template/__exl-template.html';
 		return loadFileByUrl(templateUrl);
 
 	}
@@ -268,7 +214,10 @@ function ExlClass() {
 		newExlContent.id = 'exl-content-'+exlContainerID+'-'+newItemID;
 		newExlContent.classList.add('exl', 'content');
 
-		var renderedContentTemplate = Mustache.render(contentTemplate, {});
+		var contentData = {
+			'exl-content-id': newItemID
+		}
+		var renderedContentTemplate = Mustache.render(contentTemplate, contentData);
 		newExlContent.innerHTML = renderedContentTemplate;
 		return newExlContent;
 
@@ -319,6 +268,7 @@ function ExlClass() {
 		newListItem.appendChild(newDeleteButton);
 
 		return newListItem;
+
 	}
 
 
@@ -330,10 +280,12 @@ function ExlClass() {
 	 * @param exlContainerID The exl-container's ID
 	 */
 	function updateItemCounterForID(exlContainerID) {
+
 	    var itemCounterNode = document.getElementById('exl-item-counter-'+exlContainerID);
 	    var currentValue = parseInt(itemCounterNode.value);
 	    currentValue = currentValue + 1;
 	    itemCounterNode.value = currentValue;
+
 	}
 
 
@@ -357,7 +309,7 @@ function ExlClass() {
 		exlListNode.appendChild(newListItem);
 	    updateItemCounterForID(exlContainerID, +1);
 
-	}
+	};
 
 
 	/**
@@ -369,13 +321,14 @@ function ExlClass() {
 	 * @param listItemID The exl-listitem's ID
 	 */
 	this.deleteListItemForContainerWithID = function(exlContainerID, listItemID) {
+
 		var exlList = document.getElementById('exl-list-'+exlContainerID);
 		var fullItemID = 'exl-listitem-'+exlContainerID+'-'+listItemID;
 		var listItem = document.getElementById(fullItemID);
 		// TODO: NOTE: element.removeChild() should actually not be used due to poor browser support
 		exlList.removeChild(listItem);
 
-	}
+	};
 
 
 	/**
@@ -387,13 +340,15 @@ function ExlClass() {
 	 * @param data Datastructure as json
 	 */
 	this.setupExlContainerWithData = function (exlContainer, data) {
+
 		var dataSourceName = exlContainer.getAttribute('source');
 		var containerData = data[dataSourceName];
 		var exlFormattedData = getExlDataArrayForContainerWithData(exlContainer, containerData);
-		var exlWrapperTemplate = getWrapperTemplate('__exl-template');
+		var exlWrapperTemplate = getWrapperTemplate();
 	    var fullResult = Mustache.render(exlWrapperTemplate, exlFormattedData);
 	    exlContainer.innerHTML = fullResult;
-	}
+
+	};
 
 	/**
 	 * setupExlContainerWithID
@@ -404,9 +359,11 @@ function ExlClass() {
 	 * @param data Datastructure as json
 	 */
 	this.setupExlContainerWithID = function(exlContainerID, data) {
+
 		var exlContainer = document.getElementById(exlContainerID);
-		this.setupExlContainerWithData(exlContainer, data);
-	}
+		Exl.setupExlContainerWithData(exlContainer, data);
+
+	};
 
 
 	/**
@@ -419,22 +376,15 @@ function ExlClass() {
 	 * @param data Datastructure as json
 	 */
 	this.setupAllExlContainersWithData = function(data) {
-		var elements = document.getElementsByTagName('exl-container');
 
+		var elements = document.getElementsByTagName('exl-container');
 		for (var i=0; i<elements.length; i++) {
 			var container = elements[i];
-			this.setupExlContainerWithData(container, data);
+			Exl.setupExlContainerWithData(container, data);
 		}
-	}
+
+	};
 
 }
 
 var Exl = new ExlClass();
-console.log(Exl);
-console.log(Exl.initializeExpandableList);
-console.log(Exl.config)
-
-
-
-
-
