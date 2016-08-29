@@ -6,17 +6,20 @@
 	<script type='text/javascript' src="../../import/jquery/jquery_v3.1.0.js"></script>
 	<script type='text/javascript' src='../../import/mustache/mustache_v2.2.1.js'></script>
 	<script type='text/javascript' src='../../exl.js'></script>
-	<link rel='stylesheet' href='../../css/exl.css'/>
+	<link rel='stylesheet' href='../../css/exl.css' />
+	<link rel='stylesheet' href='emails.css' />
 
 </head>
 
 <body>
-	<h1>Enter your email addresses</h1>
 
-	<form action='#' method='POST'>
-		<exl-container id='email-list' template='email-template'></exl-container>
-		<iput type='submit' value='Abschicken!' />
-	</form>
+	<div class='wrapper'>
+		<h1>Enter your email addresses</h1>
+		<form action='#' method='POST'>
+			<exl-container id='email-list' template='email-template'></exl-container>
+			<input type='submit' value='Abschicken!' />
+		</form>
+	</div>
 
 	<script type='text/javascript'>
 		// Set custom path to templates

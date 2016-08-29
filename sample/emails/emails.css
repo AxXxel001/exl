@@ -1,0 +1,11 @@
+.wrapper {
+	width: 700px;
+	margin: 30px auto;
+	padding: 20px;
+	background-color: #eaeaea;
+	border-radius: 6px
+}
+h1 {
+	text-align: center;
+	color: #202020;
+}
